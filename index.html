@@ -1,0 +1,92 @@
+---
+---
+{% include head.html %}
+
+<body>
+
+<div class="row">
+</div>
+<div id="embedding"></div>
+<br>
+<div id="stage"><img src=""/></div>
+
+
+<script>
+
+w = 400;
+h = 400;
+
+var tooltip = d3.select("#embedding").append("div")
+                  .attr("class", "tooltip")
+                  .style("opacity", 0);
+
+svgembed = d3.select("#embedding").append( "svg" )
+                              .attr("width", w)
+                              .attr("height", h)
+
+gembed = svgembed.append("g")
+.attr("width", w)
+.attr("height", h)
+.append("g")
+
+d3.json( "img.json", function( error, datain ){
+
+    xscale = d3.scale.linear()
+      .domain([d3.min(datain["embed"]["X"], function(d){return parseFloat(d);}) ,
+        d3.max(datain["embed"]["X"], function(d){return parseFloat(d);}) ])
+      .range([0,w])
+
+    yscale = d3.scale.linear()
+      .domain([d3.min(datain["embed"]["Y"], function(d){return parseFloat(d);}) ,
+        d3.max(datain["embed"]["Y"], function(d){return parseFloat(d);}) ])
+      .range([0,h])
+
+    gembed.append("g")
+      .attr("class","x axis")
+      .attr("transform", "translate(0," + 0+ ")")
+      .call( d3.svg.axis().scale(xscale).orient("bottom") )
+
+      gembed.append("g")
+      .attr("class","y axis")
+      .attr("transform","translate("+0+",0)")
+      .call( d3.svg.axis().scale(yscale).orient("right") )
+
+
+    gembed.selectAll(".dot")
+        .data( datain["embed"]["X"] )
+        .enter()
+        .append("circle")
+        .attr("r",10)
+        .attr("cx", function( d,i ){
+          return xscale( datain["embed"]["X"][i] )
+        })
+        .attr("cy", function( d,i ){
+          return yscale( datain["embed"]["Y"][i] )
+        })
+        .attr("fill","black")
+        .style("opacity",.7)
+        .on("mouseover", function(d,i) {
+          tooltip.transition()
+          .duration(200)
+          .style("opacity", .9);
+          tooltip.html(datain["embed"]["src"][i])
+          .style("left", (d3.event.pageX + 5) + "px")
+          .style("top", (d3.event.pageY - 28) + "px");
+
+
+          d3.select("#stage").select("img").attr("src",datain["embed"]["src"][i])
+        })
+        .on("mouseout", function(d) {
+          tooltip.transition()
+          .duration(500)
+          .style("opacity", 0);
+          // Place image removing function here;
+        });
+
+
+}
+)
+</script>
+
+
+</body>
