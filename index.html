@@ -7,29 +7,39 @@
 <div class="row">
 </div>
 <div id="embedding"></div>
-<br>
-<div id="stage"><img src=""/></div>
+
+<div id="stage" style="display:inline;"><img src=""/></div>
 
 
 <script>
 
-w = 400;
-h = 400;
+var margin = {top: 40, right: 40, bottom: 40, left: 40};
+w = 420 - margin.left - margin.right;
+h = 440 - margin.top - margin.bottom;
 
 var tooltip = d3.select("#embedding").append("div")
                   .attr("class", "tooltip")
                   .style("opacity", 0);
 
 svgembed = d3.select("#embedding").append( "svg" )
-                              .attr("width", w)
-                              .attr("height", h)
+        .attr("width", w + margin.left + margin.right)
+        .attr("height", h + margin.top + margin.bottom)
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
 
 gembed = svgembed.append("g")
 .attr("width", w)
 .attr("height", h)
+.attr("fill","black")
+.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 .append("g")
 
+
 d3.json( "img.json", function( error, datain ){
+
+  data = datain
+
+    var colorlim = d3.scale.category10();
 
     xscale = d3.scale.linear()
       .domain([d3.min(datain["embed"]["X"], function(d){return parseFloat(d);}) ,
@@ -43,12 +53,14 @@ d3.json( "img.json", function( error, datain ){
 
     gembed.append("g")
       .attr("class","x axis")
-      .attr("transform", "translate(0," + 0+ ")")
+      .attr("transform", "translate(0," + yscale(0)+ ")")
+      .attr("stroke-width",3)
       .call( d3.svg.axis().scale(xscale).orient("bottom") )
 
       gembed.append("g")
       .attr("class","y axis")
-      .attr("transform","translate("+0+",0)")
+      .attr("transform","translate("+ xscale(0)+",0)")
+      .attr("stroke-width",3)
       .call( d3.svg.axis().scale(yscale).orient("right") )
 
 
@@ -63,7 +75,10 @@ d3.json( "img.json", function( error, datain ){
         .attr("cy", function( d,i ){
           return yscale( datain["embed"]["Y"][i] )
         })
-        .attr("fill","black")
+        .attr("fill",function( d,i){
+          return colorlim( datain["embed"]["C"][i])
+        })
+        .attr("stroke","black")
         .style("opacity",.7)
         .on("mouseover", function(d,i) {
           tooltip.transition()
